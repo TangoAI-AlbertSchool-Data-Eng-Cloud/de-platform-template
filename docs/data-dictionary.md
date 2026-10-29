@@ -85,9 +85,8 @@ place in silver (L05).
 - **Bronze types,** once the export is landed (Evaluna, ADR 0002).
 - **The clickstream events** (L03, Jane).
 - **Which path each table takes into bronze,** and the columns each path adds
-  (L03, Till). Airbyte adds `_airbyte_raw_id`, `_airbyte_extracted_at`,
-  `_airbyte_meta` and `_airbyte_generation_id`; the hand-written extractor adds
-  none.
+  (L03, Till): the export, the extractor or the clickstream consumer. There is
+  no Airbyte path: without a service account it cannot reach our bucket.
 
 ---
 
