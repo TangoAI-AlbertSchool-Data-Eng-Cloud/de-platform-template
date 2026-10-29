@@ -7,11 +7,18 @@ brief.
 
 How to work (setup, names, review rules): [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+**No service accounts, so full batch.** Charles told us (recorded 29 October)
+that groups get no service accounts in this project. Without one, Airbyte
+cannot reach our bucket or BigQuery, so there is no connector: the database
+tables reach bronze through our own extractor, with full batch as its main
+mode. The next session shows a workaround with Airflow. This changes T2 and T3
+below, and what ADR 0003, the failure modes and `iam.md` have to say.
+
 ## Who owns what
 
 | Member | Owns | ADR | Reviews the PRs of |
 |---|---|---|---|
-| **Till** | Step 1, repo setup, batch ingestion (extractor and Airbyte connector), data dictionary, `docs/architecture.md` | 0001 (done) | Evaluna |
+| **Till** | Step 1, repo setup, batch ingestion (the extractor: full batch and incremental), data dictionary, `docs/architecture.md` | 0001 (done) | Evaluna |
 | **Evaluna** | Step 2: group bucket, bronze, lifecycle, access, costs | 0002 bronze layout | Jane |
 | **Jane** | Step 3: the clickstream consumer, its schema and dead letter queue, failure modes | 0003 ingestion modes | Enzo |
 | **Enzo** | Step 4: native tables, tuning, materialised view, cost cap, runbook | 0004 warehouse pricing | Till |
@@ -42,35 +49,44 @@ plan.
 *Done when:* PRs #2 to #5 and #7 are merged after review, and every member
 has a commit on `main`.
 
-**T2 · Extractor:** `ingestion/extract_orders.py` (step 3, deliverable 2).
+**T2 · Extractor:** `ingestion/extract_orders.py` (step 3, deliverable 2; it
+also replaces the connector of deliverable 1).
 - Plain SQL through a database driver (`psycopg`), no ORM. Credentials come
-  from `DATABASE_URL`.
-- Reads incrementally, with a cursor on `order_date` that survives a restart.
+  from `DATABASE_URL`. It writes to the bucket with the runner's own Google
+  login: no key file.
+- The table is a setting (`TABLE`), as in the L06 demo, so one script carries
+  the seven tables the connector would have: `orders`, `order_items`,
+  `review`, `product_reviews`, `product`, `customer_shipping`,
+  `shipping_details`.
+- Two modes:
+  - **Full batch, the default:** re-reads the whole table on every run. It
+    sees new rows, updates and deletes, and costs one full read per run,
+    nothing at this size.
+  - **Incremental,** as the brief asks: a cursor on `order_date` that survives
+    a restart, reading only the rows past it.
+- Selects columns by name, never `customer.pwd`, `payment_details.card_no` or
+  `cvv`.
 - Retries a failed connection with a growing delay, then gives up.
-- Writes partitioned Parquet into `bronze/`, following ADR 0002.
+- Writes Parquet into a bronze prefix of its own, agreed with Evaluna: her
+  `land_export.py` deletes anything else under `bronze/<table>/`.
 
-*Done when:* a second run reads only new rows, and a stopped database gives
-retries, then a clean failure. Record `>` versus `>=` and what the cursor
-misses, for ADR 0003.
+*Done when:* a full run matches the source's row count, a second incremental
+run reads only new rows, and a stopped database gives retries, then a clean
+failure. Record `>` versus `>=`, and what the incremental cursor misses that
+the full batch sees, for ADR 0003.
 
-**T3 · Connector (Airbyte Cloud):** step 3, deliverable 1.
-- **First, ask Charles what counts as the connector.** Airbyte Cloud cannot
-  reach the PostgreSQL running on our laptops.
-- The seven tables: `orders`, `order_items`, `review`, `product_reviews`,
-  `product`, `customer_shipping`, `shipping_details`.
-- Secret columns deselected in the connection: `customer.pwd`,
-  `payment_details.card_no`, `cvv`.
-- Commit the exported config or screenshots to `ingestion/airbyte/`. Write
-  down what credentials it holds and how to revoke them.
+**T3 · Connector: dropped.** With no service account, Airbyte cannot write
+to our bucket or BigQuery (Charles). T2's full batch carries the seven tables
+instead. The decision and its reason go into Jane's ADR 0003, as a rejected
+option, and into the failure-modes document.
 
 **T4 · Data dictionary v1:** `docs/data-dictionary.md` (step 2,
 deliverable 3).
 - Every landed table and every column: name, type, meaning, and whether it is
   personal data. Mark the names, emails, addresses and phones, the legacy
   passwords and the card data.
-- Say which path each table came from. Airbyte adds `_airbyte_raw_id`,
-  `_airbyte_extracted_at`, `_airbyte_meta` and `_airbyte_generation_id`; the
-  extractor adds none.
+- Say which path each table came from (the export, the extractor, the
+  clickstream consumer), and which columns each path adds.
 
 *Done when:* column names and types match what Evaluna landed.
 
@@ -108,7 +124,7 @@ Then, in the BigQuery console: create the dataset `g04_bronze`, location
     says `customer.pwd`, `payment_details.card_no` and `cvv` are never
     extracted. Choose, and justify the choice.
 - External tables `g04_bronze.<table>_external` (`WITH PARTITION COLUMNS`),
-  at least for the seven tables listed in T3.
+  at least for the seven tables listed in T2.
 
 *Done when:* `COUNT(*)` on the external tables matches the export, for
 example 222,644 orders and 408,560 order lines.
@@ -129,7 +145,8 @@ example 222,644 orders and 408,560 order lines.
 - `iam.md` lists every binding on the bucket and the dataset: principal, role,
   scope, and a one-line reason. Copy it from reality:
   `gcloud storage buckets get-iam-policy gs://data-engineering-i1-g04`.
-  We cannot create service accounts in this project: say so.
+  We cannot create service accounts, and Charles confirmed we will not get
+  one: every job runs as one of our personal logins. Say so.
 
 *Done when:* both files match `gcloud storage buckets describe` and
 `get-iam-policy`.
@@ -174,12 +191,17 @@ example 222,644 orders and 408,560 order lines.
 - A table: failure, handled?, by what, what happens.
 - It covers at least: new rows, updates, deletes, source down, malformed row,
   schema change, duplicate after restart, expiring credential.
-- It says where credentials live.
+- It says where credentials live: our personal Google logins and a local
+  `DATABASE_URL`, no service account (Charles). A login that expires stops the
+  pipeline: that is the "expiring credential" row.
 - At least one honest "not handled".
 
 **J5 · ADR 0003:** `docs/adr/0003-ingestion-modes.md` (deliverable 7).
 - The mode per source (the database tables, the clickstream).
-- At least one rejected option.
+- For the database tables: full batch by default, incremental as the second
+  mode (T2).
+- At least one rejected option. Airbyte with CDC is one: without a service
+  account, it cannot reach our bucket or BigQuery (Charles).
 - Evidence from J3 and from Till's extractor.
 - The guarantee committed to, and what would force a change.
 
