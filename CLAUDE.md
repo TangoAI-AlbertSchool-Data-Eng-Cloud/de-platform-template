@@ -19,7 +19,7 @@ School). Four students build it one layer per lesson:
 
 | Member | GitHub | Owns until session 5 |
 |---|---|---|
-| Till Lüder | `tluder-dot` | step 1, repo setup, extractor, Airbyte connector, data dictionary, `docs/architecture.md` |
+| Till Lüder | `tluder-dot` | step 1, repo setup, extractor (full batch and incremental), data dictionary, `docs/architecture.md` |
 | Evaluna Barth | `evalunab` | step 2: group bucket, bronze, lifecycle, access, costs |
 | Jane Galthie | `jgalthie-sketch` | step 3: clickstream consumer, schema, dead letter queue, failure modes |
 | Enzo Meret | `emeret-as` | step 4: native tables, tuning, materialised view, cost cap, runbook |
@@ -119,8 +119,11 @@ to this one: `docker compose up -d`.
 
 - **A replication slot nobody reads holds log on disk.** Drop every slot you
   create for a test (`pg_drop_replication_slot`).
-- **Airbyte runs as the Cloud trial** (the course's route 2), which cannot
-  reach a database on a laptop.
+- **No Airbyte and no service accounts.** Groups get no service accounts in
+  this project (Charles), so Airbyte cannot reach our bucket or BigQuery. The
+  database tables reach bronze through our own extractor (full batch and
+  incremental), running with the person's own Google login. Never put a
+  personal login or key into a tool to get around this.
 - **On Windows,** keep work in a short folder (for example `C:\de\`): paths
   over 260 characters break pip installs and Airflow logs.
 
