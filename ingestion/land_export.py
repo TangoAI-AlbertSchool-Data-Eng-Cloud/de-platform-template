@@ -1,7 +1,7 @@
 """Land the legacy CSV export in bronze as partitioned Parquet.
 
 Bronze keeps what arrived: no cleaning, no deduplication, no dropped rows.
-Rerunning gives the same files, so the script is safe to repeat.
+The only columns left out are the three secrets. Rerunning gives the same files, so the script is safe to repeat.
 
 Choices (argued in docs/adr/0002-bronze-layout.md):
 - Every column is read as text, with only truly empty cells as null. pandas'
@@ -13,8 +13,9 @@ Choices (argued in docs/adr/0002-bronze-layout.md):
 - orders is partitioned by year of order_date (hive layout order_year=YYYY).
   By month it was 37 files of about 180 KB: too small.
   Every other table is one file: the biggest has 408,560 rows.
-- customer and payment_details are never landed: they hold plaintext
-  passwords and card numbers, and ADR-0001 says they are never extracted.
+- customer.pwd, payment_details.card_no and cvv are never read: usecols
+  skips them as the file is parsed (ADR-0001: never extracted). The rest of
+  both tables is landed.
 
 Usage:
     python ingestion/land_export.py --src C:/de/export/legacy_csv/legacy_csv
@@ -35,8 +36,7 @@ BUCKET = "gs://data-engineering-i1-g04"
 DATASET = "g04_bronze_1"
 LOCATION = "europe-west1"
 
-# Never landed: they hold plaintext passwords and card numbers.
-SKIP_TABLES = {"customer", "payment_details"}
+# Never read: plaintext passwords, card numbers and CVVs.
 SECRET_COLUMNS = {"pwd", "card_no", "cvv"}
 
 # table -> (column to partition by, function that gives the partition value)
@@ -53,13 +53,11 @@ DATE_COLUMNS = {"order_date"}
 def read_csv(path: Path) -> pd.DataFrame:
     """Read one CSV as text. Only an empty cell is null; 'NA' stays 'NA'."""
     df = pd.read_csv(
-        path, dtype=str, keep_default_na=False, na_values=[""], encoding="utf-8"
+        path, dtype=str, keep_default_na=False, na_values=[""], encoding="utf-8",
+        usecols=lambda col: col not in SECRET_COLUMNS,
     )
     if df.columns[0].startswith("Unnamed"):
         df = df.rename(columns={df.columns[0]: "csv_index"})
-    leaked = SECRET_COLUMNS & set(df.columns)
-    if leaked:
-        raise SystemExit(f"{path.name} has secret columns {leaked}: refusing")
     for col in df.columns:
         if col in INT_COLUMNS:
             df[col] = pd.to_numeric(df[col]).astype("Int64")
@@ -156,9 +154,6 @@ def main() -> None:
     landed = []
     for path in sorted(args.src.glob("*.csv")):
         table = path.stem
-        if table in SKIP_TABLES:
-            print(f"skip   {table} (secret columns)")
-            continue
         df = read_csv(path)
         files = write_table(table, df, args.out)
         landed.append(table)

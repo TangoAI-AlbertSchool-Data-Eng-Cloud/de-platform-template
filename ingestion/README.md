@@ -7,10 +7,9 @@ In **L06** each ingestion job gets its Dockerfile here.
 
 ## The legacy export: `land_export.py`
 
-Lands 25 of the 27 CSV files in `gs://data-engineering-i1-g04/bronze/<table>/`
-as Parquet, and creates the external tables `g04_bronze_1.<table>_external`.
-`customer` and `payment_details` are skipped: they hold the passwords and card
-numbers.
+Lands the 27 CSV files in `gs://data-engineering-i1-g04/bronze/<table>/` as
+Parquet, and creates the external tables `g04_bronze_1.<table>_external`.
+`customer.pwd`, `payment_details.card_no` and `cvv` are never read.
 
 The dataset was created once, with:
 
