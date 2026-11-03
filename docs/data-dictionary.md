@@ -82,7 +82,7 @@ place in silver (L05).
 
 ## Still to add
 
-- **Bronze types,** once the export is landed (Evaluna, ADR 0002).
+- **Bronze types** (Till, ADR 0002).
 - **The clickstream events** (L03, Jane).
 - **Which path each table takes into bronze,** and the columns each path adds
   (L03, Till): the export, the extractor or the clickstream consumer. There is
