@@ -91,7 +91,7 @@ through an edit.
   dataset. Every other group and student works in the same project.
 - **Group 4's resources start with `g04`:**
   - bucket `gs://data-engineering-i1-g04`
-  - datasets `g04_bronze` (external tables named `<table>_external`) and
+  - datasets `g04_bronze_1` (external tables named `<table>_external`) and
     `g04_warehouse`
 - **Never create, change or delete anything outside these names,** and never
   touch another student's or group's resources. Before deleting or overwriting
