@@ -64,7 +64,8 @@ def read_csv(path: Path) -> pd.DataFrame:
         if col in INT_COLUMNS:
             df[col] = pd.to_numeric(df[col]).astype("Int64")
         elif col in FLOAT_COLUMNS:
-            df[col] = pd.to_numeric(df[col]).astype("float64")
+            # Not pd.to_numeric: its parser rounded 5,654 product prices.
+            df[col] = df[col].astype("float64")
         elif col in DATE_COLUMNS:
             df[col] = pd.to_datetime(df[col], format="%Y-%m-%d").dt.date
     return df
