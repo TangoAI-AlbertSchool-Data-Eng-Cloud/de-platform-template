@@ -118,9 +118,11 @@ def run(cmd: list[str]) -> None:
 
 def upload(out: Path, tables: list[str]) -> None:
     # One prefix per table, so a rerun never touches the other paths into
-    # bronze (extractor, clickstream, _dlq).
+    # bronze (extractor, clickstream, _dlq). --checksums-only: a rerun
+    # uploads only the files whose content changed, not every new mtime.
     for table in tables:
-        run(["gcloud", "storage", "rsync", "--recursive", "--delete-unmatched-destination-objects",
+        run(["gcloud", "storage", "rsync", "--recursive", "--checksums-only",
+             "--delete-unmatched-destination-objects",
              str(out / table), f"{BUCKET}/bronze/{table}"])
 
 
