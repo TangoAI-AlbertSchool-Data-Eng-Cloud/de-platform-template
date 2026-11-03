@@ -58,68 +58,36 @@ the full batch sees, for ADR 0003.
 **T3 · Connector: dropped.** Without a service account, Airbyte cannot write
 to our bucket or BigQuery. T2's full batch carries the seven tables instead.
 
-**T4 · Data dictionary** (step 2, deliverable 3). v1 is merged (#8). Still
-to add: the bronze types, and which path each table takes into bronze (the
-export, the extractor, the clickstream consumer), with the columns each path
-adds.
+**T4 · Data dictionary** (step 2, deliverable 3). v1 merged (#8), the bronze
+types in #17. Step 3 adds the extractor's and the consumer's paths.
 
-*Done when:* column names and types match bronze.
-
-**T5 · `docs/architecture.md`, steps 2 to 4,** last.
-- Step 2: the bucket, region, layout and who can read it.
-- Step 3: three arrows into bronze.
-- Step 4: the native tables.
-- One change-log row per lesson, and ADRs 0002 to 0004 in the decisions
-  table.
+**T5 · `docs/architecture.md`.** Step 2 is in #18. Still to add, last: step 3
+(three arrows into bronze), step 4 (the native tables), a change-log row per
+lesson, and ADRs 0003 and 0004 in the decisions table.
 
 ## Till: step 2, bronze
 
-**T6 · Bucket and dataset.** Done.
-- Bucket `gs://data-engineering-i1-g04`, created by Evaluna on 22 October.
-- Dataset `g04_bronze_1`, created on 3 November (the command is in
-  [ingestion/README.md](../ingestion/README.md)). Evaluna, Jane and Enzo have
-  BigQuery Data Viewer on it.
-- Evaluna deletes the old dataset `g04_bronze`: the dataset only. The bucket
-  and its files stay.
+Every deliverable is in a pull request, for Jane to review and merge.
 
-**T7 · The export as partitioned Parquet** (step 2, deliverable 1). Done.
-- `ingestion/land_export.py` (#10) lands 25 of the 27 tables in
-  `bronze/<table>/`, `orders` by year, and creates the external tables
-  `g04_bronze_1.<table>_external`.
-- Rerun on 3 November with exact prices. Every value matches the CSV:
-  222,644 orders, 408,560 order lines.
+| Task | Deliverable | What | PR |
+|---|---|---|---|
+| T6 · Bucket and dataset | | `gs://data-engineering-i1-g04` (Evaluna, 22 October), `g04_bronze_1` (3 November), readable by the four of us | #12 |
+| T7 · The export as partitioned Parquet | 1 | `ingestion/land_export.py`: 27 tables, without `pwd`, `card_no` and `cvv` | #10, #12 |
+| T8 · ADR 0002 | 2 | `docs/adr/0002-bronze-layout.md` | #14 |
+| T4 · Data dictionary v1 | 3 | `docs/data-dictionary.md` | #8, #17 |
+| T9 · Lifecycle and access as files | 4 | `infra/lifecycle.json` (applied), `infra/iam.md` | #15 |
+| T10 · Monthly cost | 5 | `docs/costs.md` | #16 |
+| T5 · Updated diagram | 6 | `docs/architecture.md` | #18 |
 
-**T8 · ADR 0002:** `docs/adr/0002-bronze-layout.md`.
-- **Decision:** the partition key per table, the format and codec, and how
-  types are read (pandas' defaults drop leading zeros and turn `NA` into
-  null).
-- **Options:** at least one other key, and CSV.
-- **The secret columns:** the brief says bronze is unchanged, but ADR-0001
-  says `customer.pwd`, `payment_details.card_no` and `cvv` are never
-  extracted. The script skips both tables whole, with their other columns.
-  Argue that, or land them without the three columns.
-- **Evidence:** the Exercise 1 numbers (#6): 279× more objects, 88× more
-  bytes, 3.7× slower, the same bytes processed.
-- **Consequences:** what is cheap, what is awkward, what would force a
-  rewrite.
+- **Merge order:** #12, then #13, then the others. #18 links to #14 and #15.
+- **Evaluna deletes the old dataset `g04_bronze`:** the dataset only. The
+  bucket and its files stay.
 
-**T9 · Lifecycle and access as files:** `infra/lifecycle.json` and
-`infra/iam.md`.
-- `lifecycle.json` is the policy actually applied to the group bucket, with
-  no delete rule, and the reason why:
-  `gcloud storage buckets update gs://data-engineering-i1-g04 --lifecycle-file=infra/lifecycle.json`
-- `iam.md` lists every binding on the bucket and on `g04_bronze_1`:
-  principal, role, scope, and a one-line reason. Copy it from reality
-  (`gcloud storage buckets get-iam-policy`, `bq show`). We have no service
-  account (Charles): every job runs as one of our personal logins. Say so.
-
-*Done when:* both files match `gcloud storage buckets describe` and
-`get-iam-policy`.
-
-**T10 · Costs:** `docs/costs.md`.
-- Monthly cost from published prices, with the date they were read: storage,
-  operations (from the object count), and what changes at 100 times the data.
-- Enzo adds the warehouse section (N6).
+*Done when* (the brief): partitioned Parquet and unmodified bronze, an ADR that
+argues from our own measurements, a dictionary that marks all personal data,
+infra files that match reality, costs that name prices and their date, a
+diagram that shows the bucket, every member committed, at least one reviewed
+PR.
 
 ## Jane: step 3, the stream
 
@@ -213,7 +181,7 @@ moves the ratio.
 - It covers: lost partition filter, table outgrew its grain, one stage
   dominates, skew, data changed shape, cached comparison.
 
-**N6 · Costs:** add the warehouse section to `docs/costs.md`, after T10 is
+**N6 · Costs:** add the warehouse section to `docs/costs.md`, after #16 is
 merged.
 
 ## Everyone, alone, before session 5: the L05 setup
