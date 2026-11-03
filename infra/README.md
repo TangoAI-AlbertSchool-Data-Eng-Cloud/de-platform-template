@@ -34,6 +34,6 @@ Coldline at 90 and Archive at 365.
 - **Why no delete rule:** bronze promises that nothing that arrived is lost.
   The bucket's soft delete (the default, 7 days) also keeps an overwritten or
   deleted file for a week.
-- **What to watch:** a daily job that reads files older than 30 days. Nearline
-  charges for every GiB read, and at our size that costs more than the class
-  saves (see [costs](../docs/costs.md)).
+- **What to watch:** a job that reads files older than 30 days. Nearline saves
+  $0.010 per GiB-month and charges $0.010 per GiB read, so reading a file more
+  than once a month costs more than the class saves ([costs](../docs/costs.md)).
