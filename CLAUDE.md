@@ -19,8 +19,8 @@ School). Four students build it one layer per lesson:
 
 | Member | GitHub | Owns until session 5 |
 |---|---|---|
-| Till Lüder | `tluder-dot` | step 1, repo setup, extractor (full batch and incremental), data dictionary, `docs/architecture.md` |
-| Evaluna Barth | `evalunab` | step 2: group bucket, bronze, lifecycle, access, costs |
+| Till Lüder | `tluder-dot` | steps 1 and 2 (bucket, bronze, lifecycle, access, costs), extractor (full batch and incremental), data dictionary, `docs/architecture.md` |
+| Evaluna Barth | `evalunab` | tasks from session 5 on |
 | Jane Galthie | `jgalthie-sketch` | step 3: clickstream consumer, schema, dead letter queue, failure modes |
 | Enzo Meret | `emeret-as` | step 4: native tables, tuning, materialised view, cost cap, runbook |
 
@@ -57,7 +57,8 @@ through an edit.
 - **Never push to `main`.** Never force-push a branch someone else has pulled.
   Never merge a PR that has no approving review.
 - **The reviewer approves; the author merges,** with **Create a merge commit**.
-  Never squash: squashing erases individual commits.
+  Never squash: squashing erases individual commits. For now, Jane approves
+  and merges Till's PRs.
 - **No Claude attribution, anywhere:**
   - No `Co-Authored-By: Claude` trailer in commit messages.
   - No "Generated with Claude Code" line in PR descriptions or comments.
@@ -90,7 +91,7 @@ through an edit.
   dataset. Every other group and student works in the same project.
 - **Group 4's resources start with `g04`:**
   - bucket `gs://data-engineering-i1-g04`
-  - datasets `g04_bronze` (external tables named `<table>_external`) and
+  - datasets `g04_bronze_1` (external tables named `<table>_external`) and
     `g04_warehouse`
 - **Never create, change or delete anything outside these names,** and never
   touch another student's or group's resources. Before deleting or overwriting

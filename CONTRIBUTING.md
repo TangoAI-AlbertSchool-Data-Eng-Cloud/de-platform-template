@@ -61,12 +61,12 @@ the group owns starts with `g04`: we are group 4. The buckets and datasets
 from your exercises stay personal: never write group data there, and never
 write into anyone else's.
 
-| What | Name | Created by |
+| What | Name | Owner |
 |---|---|---|
-| Group bucket | `gs://data-engineering-i1-g04` | Evaluna (L02) |
-| Bronze, one prefix per table | `gs://data-engineering-i1-g04/bronze/<table>/` | Evaluna (export), Till (extractor), Jane (clickstream) |
+| Group bucket | `gs://data-engineering-i1-g04` | Till (L02) |
+| Bronze, one prefix per table | `gs://data-engineering-i1-g04/bronze/<table>/` | Till (export, extractor), Jane (clickstream) |
 | Dead letter queue | `gs://data-engineering-i1-g04/bronze/_dlq/<source>/` | Jane (L03) |
-| BigQuery: bronze as external tables | dataset `g04_bronze`, tables `<table>_external` | Evaluna (L02) |
+| BigQuery: bronze as external tables | dataset `g04_bronze_1`, tables `<table>_external` | Till (L02) |
 | BigQuery: native tables | dataset `g04_warehouse` | Enzo (L04) |
 
 - **Region:** `europe-west1` for every bucket and dataset. Location is fixed
@@ -102,7 +102,8 @@ write into anyone else's.
 
 5. **The author merges after approval,** with **Create a merge commit**. Never
    squash: squashing replaces our individual commits with one. Then delete the
-   branch.
+   branch. The one exception, for now: Jane approves and merges Till's PRs
+   ([work plan](docs/workplan.md)).
 
 6. **Never push to `main`,** and never merge your own pull request without an
    approval.
