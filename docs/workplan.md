@@ -24,6 +24,9 @@ workaround with Airflow.
   landing script (#10); her next tasks come with the later steps.
 - **For now, Jane approves and merges Till's PRs.** For every other PR, the
   reviewer approves and the author merges.
+- **Everyone:** write your role in the README team table, as a commit of your
+  own on the branch `docs/team-roles` (#19). Jane merges it once all four
+  rows are filled.
 - At the defence, everyone is asked about an ADR they did not write.
 
 ## Till
@@ -79,7 +82,8 @@ Every deliverable is in a pull request, for Jane to review and merge.
 | T10 · Monthly cost | 5 | `docs/costs.md` | #16 |
 | T5 · Updated diagram | 6 | `docs/architecture.md` | #18 |
 
-- **Merge order:** #12, then #13, then the others. #18 links to #14 and #15.
+- **Merge order:** #13 first, so that `main` has this plan, then #12, then
+  #14 to #18. #18 links to #14 and #15.
 - **Evaluna deletes the old dataset `g04_bronze`:** the dataset only. The
   bucket and its files stay.
 
@@ -96,7 +100,9 @@ PR.
 - It reads topic `clickstream` on `localhost:9092`.
 - It writes partitioned Parquet to
   `gs://data-engineering-i1-g04/bronze/clickstream/`. Decide whether to
-  partition by `event_time` or `emitted_at`, and say why.
+  partition by `event_time` or `emitted_at`, and say why. If the upload is
+  refused, tell Till: our rights on the bucket come from course roles we
+  cannot list.
 - The docstring states the delivery guarantee in one sentence, and the code
   matches it. For example, the offset is committed after the file is written:
   at least once.

@@ -102,7 +102,8 @@ write into anyone else's.
 
 5. **The author merges after approval,** with **Create a merge commit**. Never
    squash: squashing replaces our individual commits with one. Then delete the
-   branch.
+   branch. The one exception, for now: Jane approves and merges Till's PRs
+   ([work plan](docs/workplan.md)).
 
 6. **Never push to `main`,** and never merge your own pull request without an
    approval.
