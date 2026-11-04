@@ -16,7 +16,7 @@ the end of the course it holds the platform your group defends orally:
 
 | Name | GitHub | Role |
 |---|---|---|
-| Till Lüder | [@tluder-dot](https://github.com/tluder-dot) | |
+| Till Lüder | [@tluder-dot](https://github.com/tluder-dot) | Coordination and setup; bronze (step 2), the extractor, data dictionary, architecture |
 | Evaluna Barth | [@evalunab](https://github.com/evalunab) | |
 | Jane Galthie | [@jgalthie-sketch](https://github.com/jgalthie-sketch) | |
 | Enzo Meret | [@emeret-as](https://github.com/emeret-as) | |
