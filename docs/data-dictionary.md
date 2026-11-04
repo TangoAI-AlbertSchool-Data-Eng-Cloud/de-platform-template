@@ -9,8 +9,7 @@ Where the content comes from:
 - **Columns, row counts and every count below:** profiled from the CSV files on
   2026-10-20, reading every value as text.
 - **Types:** the source schema, in the company repo's `db/migrations/`
-  (PostgreSQL 17). Bronze types depend on how the export is landed
-  ([ADR 0002](adr/)), and are added here once it is.
+  (PostgreSQL 17). The types in bronze are under [In bronze](#in-bronze).
 - **Meanings:** the schema, the company repo's
   [dataset card](https://github.com/TangoAI-AlbertSchool-Data-Eng-Cloud/albert-marketplace/blob/main/docs/dataset-card.md),
   and the data itself.
@@ -80,13 +79,37 @@ place in silver (L05).
 | 12 | **A timestamp with no time zone** | `payment.created_at` | The day of a payment near midnight depends on the time zone assumed |
 | 13 | **No constraints in the files** | All 27 | Keys and foreign keys hold in the source, but nothing in the CSVs enforces them |
 
+## In bronze
+
+All 27 tables came into bronze through one path so far: the export, landed by
+[`ingestion/land_export.py`](../ingestion/land_export.py) and read as
+`g04_bronze_1.<table>_external` ([ADR 0002](adr/0002-bronze-layout.md)).
+
+**Types.** Every column is `STRING`, except:
+
+| Bronze type | Columns |
+|---|---|
+| `INT64` | `order_id`, `payment_id`, `address_id`, `review_id`, `category_id`, `discount_id`, `qty`, `rating` in every table; `csv_index`; `orders.order_year` |
+| `FLOAT64` | `product.price`, `order_items.price_at_purchase` |
+| `DATE` | `orders.order_date` |
+
+Checked in `g04_bronze_1.INFORMATION_SCHEMA.COLUMNS` on 3 November 2026: 27
+tables, 126 columns, 74 of them `STRING`.
+
+**What the export path adds and leaves out:**
+
+- **Adds `csv_index`:** the unnamed index column of 25 files (trap 1), kept
+  under a name.
+- **Adds `orders.order_year`:** the partition, read from the folder name.
+- **Leaves out `customer.pwd`, `payment_details.card_no` and `cvv`:** never
+  read (ADR-0001).
+
 ## Still to add
 
-- **Bronze types,** once the export is landed (Evaluna, ADR 0002).
 - **The clickstream events** (L03, Jane).
-- **Which path each table takes into bronze,** and the columns each path adds
-  (L03, Till): the export, the extractor or the clickstream consumer. There is
-  no Airbyte path: without a service account it cannot reach our bucket.
+- **The extractor's and the clickstream consumer's paths into bronze,** and the
+  columns each adds (L03). There is no Airbyte path: without a service account
+  it cannot reach our bucket.
 
 ---
 
