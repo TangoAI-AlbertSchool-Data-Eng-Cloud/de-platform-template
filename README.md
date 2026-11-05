@@ -16,10 +16,10 @@ the end of the course it holds the platform your group defends orally:
 
 | Name | GitHub | Role |
 |---|---|---|
-| | | |
-| | | |
-| | | |
-| | | |
+| Till Lüder | [@tluder-dot](https://github.com/tluder-dot) | Coordination and setup; bronze (step 2), the extractor, data dictionary, architecture |
+| Evaluna Barth | [@evalunab](https://github.com/evalunab) | |
+| Jane Galthie | [@jgalthie-sketch](https://github.com/jgalthie-sketch) | Step 3: the clickstream consumer, its schema and dead letter queue, failure modes, ADR 0003. Reviews Till's and Enzo's PRs |
+| Enzo Meret | [@emeret-as](https://github.com/emeret-as) | |
 
 ## How this repo grows
 
@@ -40,6 +40,10 @@ Starter files for later lessons arrive as **pull requests** opened by the
 teaching team. Review and merge them like any other change.
 
 ## How we work
+
+**Start with [CONTRIBUTING.md](CONTRIBUTING.md)** (machine setup, names of our
+shared resources, branch and review rules) **and
+[docs/workplan.md](docs/workplan.md)** (who does what until session 5).
 
 - **Every change goes through a pull request,** reviewed by another member
   before it reaches `main`.

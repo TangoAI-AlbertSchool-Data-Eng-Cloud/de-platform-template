@@ -10,6 +10,15 @@ service-account*.json
 data/
 *.parquet
 
+# The legacy export and anything copied from it: it holds plaintext passwords
+# and card numbers (synthetic, but never committed)
+*.csv
+*.tar.gz
+legacy_csv/
+
+# Local pipeline output (the clickstream consumer's default OUT and DLQ)
+out/
+
 # Python
 __pycache__/
 *.py[cod]
